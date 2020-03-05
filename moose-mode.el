@@ -88,7 +88,7 @@
 
 (defcustom moose-mode-literal-boolean
   t
-  "Enable font-lock for boolean literals. For more information"
+  "Enable font-lock for boolean literals. For more information."
   :type 'boolean
   :group 'moose-mode)
 
