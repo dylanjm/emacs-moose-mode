@@ -6,7 +6,6 @@
   "Provides syntax highlighting for moose input files."
   :group 'faces)
 
-
 (eval-and-compile
   (defun moose-string-length< (a b) (< (length a) (length b)))
   (defun moose-string-length> (a b) (not (moose-string-length< a b))))
@@ -33,7 +32,10 @@
 
 (defcustom moose-mode-orders
   (eval-when-compile
-    (sort '("CONSTANT" "FIRST" "SECOND" "THIRD" "FOURTH" "FIFTH" "SIXTH" "SEVENTH" "EIGHTH" "NINTH")
+    (sort '("CONSTANT" "FIRST"
+             "SECOND" "THIRD" "FOURTH"
+             "FIFTH" "SIXTH" "SEVENTH"
+             "EIGHTH" "NINTH")
       'moose-string-length>))
   "List of MOOSE polynomal orders."
   :type '(choice (const :tag "Disabled" nil)
@@ -42,7 +44,10 @@
 
 (defcustom moose-mode-families
   (eval-when-compile
-    (sort '("LAGRANGE" "MONOMIAL" "HERMITE" "SCALAR" "HIERARCHIC" "CLOUGH" "XYZ" "SZABAB" "BERNSTEIN" "L2_LAGRANGE" "L2_HIERARCHIC")
+    (sort '("LAGRANGE" "MONOMIAL" "HERMITE"
+             "SCALAR" "HIERARCHIC" "CLOUGH"
+             "XYZ" "SZABAB" "BERNSTEIN"
+             "L2_LAGRANGE" "L2_HIERARCHIC")
       'moose-string-length>))
   "List of MOOSE families."
   :type '(choice (const :tag "Disabled" nil)
@@ -51,7 +56,12 @@
 
 (defcustom moose-mode-element-types
   (eval-when-compile
-    (sort '("EDGE" "EDGE2" "EDGE3" "EDGE4" "QUAD" "QUAD4" "QUAD8" "QUAD9" "TRI3" "TRI6" "HEX" "HEX8" "HEX20" "HEX27" "TET4" "TET10" "PRISM6" "PRISM15" "PRISM18")
+    (sort '("EDGE" "EDGE2" "EDGE3" "EDGE4"
+             "QUAD" "QUAD4" "QUAD8" "QUAD9"
+             "TRI3" "TRI6"
+             "HEX" "HEX8" "HEX20" "HEX27"
+             "TET4" "TET10"
+             "PRISM6" "PRISM15" "PRISM18")
       'moose-string-length>))
   "List of MOOSE element types."
   :type '(choice (const :tag "Disabled" nil)
@@ -66,51 +76,44 @@
            (repeat string))
   :group 'moose-mode)
 
+(defcustom moose-mode-literal-booleans
+  (eval-when-compile
+    (sort '("TRUE" "true" "YES" "yes" "ON" "on"
+             "FALSE" "false" "NO" "no" "OFF" "off")
+      'moose-string-length>))
+  "List of moose-mode boolean literals."
+  :type '(choice (const :tag "Disabled" nil)
+           (repeat string))
+  :group 'moose-mode)
 
 (defvar moose-mode-keywords nil)
 
 (defun moose-mode-generate-font-lock-keywords ()
   "Create all regexp for moose-mode blocks."
-  (let ((types-regexp (regexp-opt moose-mode-types 'symbols))
-         (orders-regexp (regexp-opt moose-mode-orders 'words))
-         (family-regexp (regexp-opt moose-mode-families 'words))
-         (elem-regexp (regexp-opt moose-mode-element-types 'words))
-         (operator-regexp (regexp-opt moose-mode-operators)))
+  (let ((types-regexp     (regexp-opt moose-mode-types 'symbols))
+         (orders-regexp   (regexp-opt moose-mode-orders 'words))
+         (family-regexp   (regexp-opt moose-mode-families 'words))
+         (elem-regexp     (regexp-opt moose-mode-element-types 'words))
+         (operator-regexp (regexp-opt moose-mode-operators))
+         (boolean-regexp  (regexp-opt moose-mode-literal-booleans 'words))
+         (number-regexp   "[+-]?[0-9]*(\\.[0-9]*)?([eE][+-][0-9]+)?"))
     (setq moose-mode-keywords
       `(
          ;; Note: order below matters, because once colored, that part
          ;; won't change. In general, longer words first
-         (,types-regexp (0 font-lock-type-face))
-         (,family-regexp (1 font-lock-constant-face))
-         (,orders-regexp (0 font-lock-constant-face))
-         (,elem-regexp (0 font-lock-constant-face))
-         (,operator-regexp (0 font-lock-constant-face))))))
-
-(defcustom moose-mode-literal-boolean
-  t
-  "Enable font-lock for boolean literals. For more information."
-  :type 'boolean
-  :group 'moose-mode)
-
-(defvar moose-mode-font-lock-literal-boolean nil)
-
-(defun moose-mode-generate-font-lock-literal-boolean ()
-  (let ((literal-boolean-regexp (regexp-opt
-                                  (eval-when-compile (sort '("false" "true") 'moose-string-length>))
-                                  'words)))
-    (setq moose-mode-font-lock-literal-boolean
-      `(
-         ;; Note: order below matters, because once colored, that part
-         ;; won't change. In general, longer words first
-         (,literal-boolean-regexp (0 font-lock-constant-face))))))
+         (,number-regexp      (0 font-lock-constant-face))
+         (,types-regexp       (0 font-lock-type-face))
+         (,family-regexp      (1 font-lock-constant-face))
+         (,orders-regexp      (0 font-lock-constant-face))
+         (,elem-regexp        (0 font-lock-constant-face))
+         (,operator-regexp    (0 font-lock-constant-face))
+         (,boolean-regexp     (0 font-lock-warning-face))))))
 
 
 (defun moose-mode-add-keywords (&optional mode)
   "Install keywords into major MODE, or into current buffer if nil."
-  (font-lock-add-keywords mode (moose-mode-generate-font-lock-keywords) nil)
-  (when moose-mode-literal-boolean
-    (font-lock-add-keywords mode (moose-mode-generate-font-lock-literal-boolean) nil)))
-
+  (font-lock-add-keywords mode
+    (moose-mode-generate-font-lock-keywords) nil))
 
 (defun moose-mode-remove-keywords (&optional mode)
   "Remove keywords from major MODE, or from current buffer if nil."
