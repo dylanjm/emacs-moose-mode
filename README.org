@@ -1,0 +1,18 @@
+#+title: Emacs MOOSE Mode
+
+This is an Emacs minor mode for [[https://github.com/idaholab/moose][MOOSE]] input and testing files. It provides syntax-highlighting and that's about it right now.
+
+** Install
+
+You can install this package by cloning this repo and placing it in the load-path in your =init.el= file. Or, if you use straight package manager you can:
+
+#+begin_src emacs-lisp
+(use-package
+  :straight (:host github :repo "dylanjm/emacs-moose-mode"))
+#+end_src
+
+** Contribution
+
+If you find a bug or would like to contribute to making the mode more robust please submit an issue and/or a PR.
+
+** Liscense
