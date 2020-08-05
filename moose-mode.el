@@ -14,12 +14,86 @@
   :group 'languages
   :prefix "moose-")
 
-(defun moose-mode-generate-font-lock-keywords ()
-  "Create all regexp for moose-mode blocks.")
+(defvar moose-mode-hook nil)
+
+(defconst moose-control-keywords-regexp
+  (rx (group "[")
+    (group (or "Adaptivity" "Bounds" "Mesh" "MeshGenerators"
+             "MeshModifiers" "Kernels" "AuxKernels"
+             "ScalarKernels" "AuxScalarKernels" "Variables" "AuxVariables"
+             "Materials" "Postprocessors" "BCs" "ICs" "Executioner"
+             "Outputs" "Problem" "Debug" "Preconditioning" "UserObjects"
+             "Functions" "GlobalParams" "VectorPostprocessors" "Dampers"
+             "DiracKernels" "DGKernels" "Constraints" "NodalNormals"
+             "CoupledProblems" "DeprecatedBlock" "MultiApps" "Transfers"
+             "InterfaceKernels" "NodalKernels" "Controls" "Modules"))
+    (group "]")))
+
+(defconst moose-control-keywords-regexp-2
+  (rx "["
+    (group "." "/")
+    (group (or "TimeStepper" "TimePeriods" "Quadrature" "Predictor"
+             "Adaptivity" "Indicators" "Markers" "Periodic" "InitialCondition"
+             "MortarInterfaces"))
+    "]"))
+
+(defconst moose-function-regexp
+  (rx "[" (group (* ".") (* "/")) (group (* any)) "]"))
+
+(defconst moose-type-variable-regexp
+  "\\(\\btype\\b\\) *\\(=\\) *\\([^ ]+\\)")
+
+(defconst moose-order-constant-regexp
+  "\\border\\b *\\(=\\) *\\(CONSTANT\\|FIRST\\|SECOND\\|THIRD\\|FOURTH\\|FIFTH\\|SIXTH\\|SEVENTH\\|EIGHTH\\|NINTH\\)\\b")
+
+(defconst moose-family-constant-regexp
+  "\\bfamily\\b *\\(=\\) *\\(LAGRANGE\\|MONOMIAL\\|HERMITE\\|SCALAR\\|HIERARCHIC\\|CLOUGH\\|XYZ\\|SZABAB\\|BERNSTEIN\\|L2_LAGRANGE\\|L2_HIERARCHIC\\)\\b")
+
+(defconst moose-element-constant-regexp
+  "\\belem_type\\b *\\(=\\) *\\(EDGE\\|EDGE2\\|EDGE3\\|EDGE4\\|QUAD\\|QUAD4\\|QUAD8\\|QUAD9\\|TRI3\\|TRI6\\|HEX\\|HEX8\\|HEX20\\|HEX27\\|TET4\\|TET10\\|PRISM6\\|PRISM15\\|PRISM18\\)\\b")
+
+(defconst moose-numeric-regexp-1
+  "[[:digit:]]*\\.[[:digit:]]+")
+
+(defconst moose-numeric-regexp-2
+  "[[:digit:]]+e[+-]\\{0,1\\}[[:digit:]]+")
+
+(defconst moose-numeric-regexp-3
+  "[[:digit:]]*\\.[[:digit:]]+e[+-]\\{0,1\\}[[:digit:]]+")
+
+(defconst moose-numeric-regexp-4
+  "[[:digit:]]+")
+
+(defconst moose-math-functions-regexp
+  "\\(abs\\|acos\\|acosh\\|arg\\|asin\\|atan\\|atan2\\|atanh\\|cbrt\\|ceil\\|conj\\|cos\\|cosh\\|cot\\|csc\\|exp\\|exp2\\|floor\\|hypot\\|if\\|imag\\|int\\|log\\|log10\\|log2\\|max\\|min\\|polar\\|pow\\|real\\|sec\\|sin\\|sinh\\|sqrt\\|tan\\|tanh\\|trunc\\|plog\\)(")
+
+(defconst moose-comment-regexp
+  "^ *\\(\\(#+\\).*\\)")
+
+(defconst moose-inline-comment-regexp
+  "\\(\\(#+\\).*\\)")
+
+(defconst moose-mode-font-lock-keywords
+  `((,moose-comment-regexp (1 font-lock-comment-face))
+     (,moose-inline-comment-regexp (1 font-lock-comment-face))
+     (,moose-control-keywords-regexp (2 font-lock-keyword-face))
+     (,moose-control-keywords-regexp-2 (2 font-lock-keyword-face))
+     (,moose-function-regexp (2 font-lock-function-name-face))
+     (,moose-type-variable-regexp (1 font-lock-keyword-face))
+     (,moose-type-variable-regexp (3 font-lock-function-name-face))
+     (,moose-order-constant-regexp (2 font-lock-constant-face))
+     (,moose-family-constant-regexp (2 font-lock-constant-face))
+     (,moose-element-constant-regexp (2 font-lock-constant-face))
+     (,moose-numeric-regexp-1 (0 font-lock-constant-face))
+     (,moose-numeric-regexp-2 (0 font-lock-constant-face))
+     (,moose-numeric-regexp-3 (0 font-lock-constant-face))
+     (,moose-numeric-regexp-4 (0 font-lock-constant-face))
+     (,moose-math-functions-regexp (1 font-lock-function-name-face))))
 
 (defconst moose-mode-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?' "\"" table)    ;; ' is a string delimiter
+    (modify-syntax-entry ?_ "w" table)     ;; _ is part of a word
+    ;;(modify-syntax-entry ?' "\"" table)    ;; ' is a string delimiter
     (modify-syntax-entry ?\" "\"" table)   ;; " is a string delimiter too
     (modify-syntax-entry ?# ". 12" table)  ;; # is a comment starter
     (modify-syntax-entry ?\n ">" table)    ;; \n is a comment ender
@@ -27,7 +101,8 @@
 
 (define-derived-mode moose-mode prog-mode "MOOSE"
   :syntax-table moose-mode-syntax-table
-  :group 'moose-mode)
+  :group 'moose
+  (setq-local font-lock-defaults '(moose-mode-font-lock-keywords)))
 
 
 (provide 'moose-mode)
