@@ -13,20 +13,20 @@
 []
 
 [Variables]
-  [./x]
+  [x]
     order = FIRST
     family = LAGRANGE
-  [../]
+  []
 []
 
 [Materials]
-  [./const]
+  [const]
     type = GenericConstantMaterial
     block = 0
     prop_names = 'kappa M'
     prop_values = '0.1 1e-3'
-  [../]
-  [./free_energy]
+  []
+  [free_energy]
     type = DerivativeParsedMaterial
     block = 0
     f_name = F
@@ -34,19 +34,19 @@
     function = 'x*log(x)+(1-x)*log(1-x) + x^2*(1-x)^2'
     third_derivatives = false
     enable_jit = true
-  [../]
+  []
 []
 
 [Kernels]
-  [./c_res]
+  [c_res]
     type = SplitCHParsed
     variable = x
-    f_name =  F
+    f_name = F
     kappa_name = kappa
     w = w
-  [../]
-  [./w_res]
+  []
+  [w_res]
     type = SplitCHWRes
     variable = w
-  [../]
+  []
 []

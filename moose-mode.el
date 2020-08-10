@@ -1,13 +1,7 @@
 ;;; moose-mode.el --- Syntax Highlighting for MOOSE  -*- lexical-binding: t; -*-
 ;;; Commentary:
 ;;; Code:
-
 (require 'rx)
-
-(eval-when-compile
-  (defun moose-string-length> (e1 e2)
-    "Predicate function for function `sort'."
-    (> (length e1) (length e2))))
 
 (defgroup moose ()
   "Provides syntax highlighting for moose input files."
@@ -87,8 +81,7 @@
 (defconst moose-numeric-regexp-3
   "[[:digit:]]*\\.[[:digit:]]+e[+-]\\{0,1\\}[[:digit:]]+")
 
-(defconst moose-numeric-regexp-4
-  "[[:digit:]]+")
+(defconst moose-numeric-regexp-4 "\\b[[:digit:]]+\\b")
 
 (defconst moose-math-functions-regexp
   (rx (group
@@ -105,13 +98,24 @@
 (defconst moose-inline-comment-regexp
   "\\(\\(#+\\).*\\)")
 
+(defconst moose-inline-operator-regexp
+  "[\\+\\*\\/\\^%\\()-]")
+
+(defun moose-string-keyword-matcher (regex)
+  "Use REGEX to find keywords within strings."
+  (lambda (end)
+    (let (pos (case-fold-search t))
+      (while (and (setq pos (re-search-forward regex end t))
+               (null (nth 3 (syntax-ppss pos)))))
+      pos)))
+
 (defconst moose-mode-font-lock-keywords
   `((,moose-comment-regexp (1 font-lock-comment-face))
      (,moose-inline-comment-regexp (1 font-lock-comment-face))
      (,moose-control-keywords-regexp-1 (2 font-lock-keyword-face))
      (,moose-control-keywords-regexp-2 (2 font-lock-keyword-face))
      (,moose-function-regexp (2 font-lock-function-name-face))
-     (,moose-type-variable-regexp (1 font-lock-keyword-face))
+     (,moose-type-variable-regexp (1 font-lock-builtin-face))
      (,moose-type-variable-regexp (3 font-lock-function-name-face))
      (,moose-order-constant-regexp (2 font-lock-constant-face))
      (,moose-family-constant-regexp (2 font-lock-constant-face))
@@ -120,13 +124,20 @@
      (,moose-numeric-regexp-2 (0 font-lock-constant-face))
      (,moose-numeric-regexp-3 (0 font-lock-constant-face))
      (,moose-numeric-regexp-4 (0 font-lock-constant-face))
-     (,moose-math-functions-regexp (1 font-lock-function-name-face))
-     (,moose-boolean-constant-regexp (1 font-lock-constant-face))))
+     (,moose-boolean-constant-regexp (1 font-lock-constant-face))
+     (,(moose-string-keyword-matcher "\\sw+") 0 font-lock-variable-name-face t)
+     (,(moose-string-keyword-matcher moose-inline-operator-regexp) 0 nil t)
+     (,(moose-string-keyword-matcher moose-math-functions-regexp) 1 font-lock-function-name-face t)
+     (,(moose-string-keyword-matcher moose-numeric-regexp-1) 0 font-lock-constant-face t)
+     (,(moose-string-keyword-matcher moose-numeric-regexp-2) 0 font-lock-constant-face t)
+     (,(moose-string-keyword-matcher moose-numeric-regexp-3) 0 font-lock-constant-face t)
+     (,(moose-string-keyword-matcher moose-numeric-regexp-4) 0 font-lock-constant-face t)))
 
 (defconst moose-mode-syntax-table
   (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?. "w" table)     ;; . is part of a word
     (modify-syntax-entry ?_ "w" table)     ;; _ is part of a word
-    ;;(modify-syntax-entry ?' "\"" table)    ;; ' is a string delimiter
+    (modify-syntax-entry ?' "\"" table)    ;; ' is a string delimiter
     (modify-syntax-entry ?\" "\"" table)   ;; " is a string delimiter too
     (modify-syntax-entry ?# ". 12" table)  ;; # is a comment starter
     (modify-syntax-entry ?\n ">" table)    ;; \n is a comment ender
