@@ -1,4 +1,4 @@
-# This is a comment!
+# This is a comment.
 # comments can span multiple lines!
 [Mesh]
   type = GeneratedMesh # This is a comment too!
@@ -25,7 +25,7 @@
     block = 0
     prop_names = 'kappa M'
     prop_values = '0.1 1e-3'
-  []
+  [../]
   [free_energy]
     type = DerivativeParsedMaterial
     block = 0
@@ -34,11 +34,11 @@
     function = 'x*log(x)+(1-x)*log(1-x) + x^2*(1-x)^2'
     third_derivatives = false
     enable_jit = true
-  []
+  [../]
 []
 
 [Kernels]
-  [c_res]
+  [./c_res]
     type = SplitCHParsed
     variable = x
     f_name = F

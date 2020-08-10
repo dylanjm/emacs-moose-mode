@@ -2,25 +2,56 @@
 ;;; Commentary:
 ;;; Code:
 (require 'rx)
+(require 'cl-lib)
 
 (defgroup moose ()
   "Provides syntax highlighting for moose input files."
   :group 'languages
   :prefix "moose-")
 
+(defcustom moose-indent-offset 2
+  "Number of spaces per indentation level."
+  :type 'integer)
+
+;;;###autoload
+(dolist (modes '( ("\\.i\\'" . moose-mode)
+                  ("^assessment\\'" . moose-mode)
+                  ("^test\\'" . moose-mode)))
+  (add-to-list 'auto-mode-alist modes))
+
+(defconst moose-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?. "w" table)          ;; . is part of a word
+    (modify-syntax-entry ?_ "w" table)          ;; _ is part of a word
+    (modify-syntax-entry ?= ". 23bn" table)     ;; = is punctuation
+    (modify-syntax-entry ?' "\"" table)         ;; ' is a string delimiter
+    (modify-syntax-entry ?\" "\"" table)        ;; " is a string delimiter too
+    (modify-syntax-entry ?# "< 14" table)       ;; # is a comment starter
+    (modify-syntax-entry ?\n ">" table)         ;; \n is a comment ender
+    table))
+
 (defvar moose-mode-hook nil)
+
+(eval-when-compile
+  (defun moose-string-keyword-matcher (regex)
+    "Use REGEX to find keywords within strings."
+    (lambda (end)
+      (let (pos (case-fold-search t))
+        (while (and (setq pos (re-search-forward regex end t))
+                 (null (nth 3 (syntax-ppss pos)))))
+        pos))))
 
 (defconst moose-control-keywords-regexp-1
   (rx (group "[")
     (group
-      (or "Adaptivity" "Bounds" "Mesh" "MeshGenerators" "MeshModifiers" "Kernels"
-        "AuxKernels" "ScalarKernels" "AuxScalarKernels" "Variables" "AuxVariables"
-        "Materials" "Postprocessors" "BCs" "ICs" "Executioner" "Outputs" "Problem"
-        "Debug" "Preconditioning" "UserObjects" "Functions" "GlobalParams"
-        "VectorPostprocessors" "Dampers" "DiracKernels" "DGKernels"
-        "Constraints" "NodalNormals" "CoupledProblems" "DeprecatedBlock"
-        "MultiApps" "Transfers" "InterfaceKernels" "NodalKernels" "Controls"
-        "Modules"))
+      (or "Adaptivity" "Bounds" "Mesh" "MeshGenerators" "MeshModifiers"
+        "Kernels" "AuxKernels" "ScalarKernels" "AuxScalarKernels" "Variables"
+        "AuxVariables" "Materials" "Postprocessors" "BCs" "ICs" "Executioner"
+        "Outputs" "Problem" "Debug" "Preconditioning" "UserObjects" "Functions"
+        "GlobalParams" "VectorPostprocessors" "Dampers" "DiracKernels"
+        "DGKernels" "Constraints" "NodalNormals" "CoupledProblems"
+        "DeprecatedBlock" "MultiApps" "Transfers" "InterfaceKernels"
+        "NodalKernels" "Controls" "Modules"))
     (group "]")))
 
 (defconst moose-control-keywords-regexp-2
@@ -32,7 +63,11 @@
     "]"))
 
 (defconst moose-function-regexp
-  (rx "[" (group (* ".") (* "/")) (group (* any)) "]"))
+  (rx (zero-or-more (in space))
+    "["
+    (? (group (+ ".") (+ "/")))
+    (group (+ (in word)))
+    "]"))
 
 (defconst moose-type-variable-regexp
   (rx (group bow "type")
@@ -92,22 +127,9 @@
           "trunc" "plog"))
     "("))
 
-(defconst moose-comment-regexp
-  "^ *\\(\\(#+\\).*\\)")
-
-(defconst moose-inline-comment-regexp
-  "\\(\\(#+\\).*\\)")
-
-(defconst moose-inline-operator-regexp
-  "[\\+\\*\\/\\^%\\()-]")
-
-(defun moose-string-keyword-matcher (regex)
-  "Use REGEX to find keywords within strings."
-  (lambda (end)
-    (let (pos (case-fold-search t))
-      (while (and (setq pos (re-search-forward regex end t))
-               (null (nth 3 (syntax-ppss pos)))))
-      pos)))
+(defconst moose-comment-regexp "^ *\\(\\(#+\\).*\\)")
+(defconst moose-inline-comment-regexp  "\\(\\(#+\\).*\\)")
+(defconst moose-inline-operator-regexp "[\\+\\*\\/\\^%\\()-]")
 
 (defconst moose-mode-font-lock-keywords
   `((,moose-comment-regexp (1 font-lock-comment-face))
@@ -133,20 +155,87 @@
      (,(moose-string-keyword-matcher moose-numeric-regexp-3) 0 font-lock-constant-face t)
      (,(moose-string-keyword-matcher moose-numeric-regexp-4) 0 font-lock-constant-face t)))
 
-(defconst moose-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?. "w" table)     ;; . is part of a word
-    (modify-syntax-entry ?_ "w" table)     ;; _ is part of a word
-    (modify-syntax-entry ?' "\"" table)    ;; ' is a string delimiter
-    (modify-syntax-entry ?\" "\"" table)   ;; " is a string delimiter too
-    (modify-syntax-entry ?# ". 12" table)  ;; # is a comment starter
-    (modify-syntax-entry ?\n ">" table)    ;; \n is a comment ender
-    table))
+(defun moose-comment-or-string-p (&optional syntax-ppss)
+  "Return non-nil if SYNTAX-PPSS is inside string or comment."
+  (nth 8 (or syntax-ppss (syntax-ppss))))
 
+(defun moose-in-comment-p (&optional syntax-ppss)
+  "Return non-nil if SYNTAX-PPSS is inside comment."
+  (nth 4 (or syntax-ppss (syntax-ppss))))
+
+(defun moose-in-string-p (&optional syntax-ppss)
+  "Return non-nil if SYNTAX-PPSS is inside string."
+  (nth 3 (or syntax-ppss (syntax-ppss))))
+
+(defun moose-looking-at-beginning-of-block (&optional syntax-ppss)
+  "Return non-nil if SYNTAX-PPSS is at `beginning-of-block'."
+  (and (not (moose-comment-or-string-p (or syntax-ppss (syntax-ppss))))
+    (save-excursion
+      (beginning-of-line 1)
+      (looking-at moose-function-regexp))))
+
+(defun moose-looking-at-end-of-block (&optional syntax-ppss)
+  "Return non-nil if SYNTAX-PPSS is at `beginning-of-block'."
+  (and (not (moose-comment-or-string-p (or syntax-ppss (syntax-ppss))))
+    (save-excursion
+      (beginning-of-line 1)
+      (looking-at
+        (rx (zero-or-more (in space)) "[" (? (+ ".") (+ "/")) "]")))))
+
+(defun moose-last-open-block-pos (min)
+  "Return position of the last open block if found.
+Do not move back beyone position MIN."
+  (save-excursion
+    (let ((nesting-count 0))
+      (while (not (or (> nesting-count 0) (<= (point) min)))
+        (backward-sexp)
+        (setq nesting-count
+          (cond
+            ((moose-looking-at-beginning-of-block)
+              (+ nesting-count 1))
+            ((moose-looking-at-end-of-block)
+              (- nesting-count 1))
+            (t nesting-count))))
+      (if (> nesting-count 0)
+        (point)
+        nil))))
+
+(defun moose-last-open-block (min)
+  "Move point back and return indentatino level for last open block.
+Do not move back beyond MIN."
+  (setq min (max min (point-min)))
+  (let ((pos (moose-last-open-block-pos min)))
+    (and pos
+      (progn
+        (goto-char pos)
+        (+ moose-indent-offset (current-indentation))))))
+
+(defun moose-indent-line ()
+  "Indent current line of moose input file."
+  (interactive)
+  (let* ((point-offset (- (current-column) (current-indentation))))
+    (indent-line-to
+      (save-excursion
+        (beginning-of-line)
+        (forward-to-indentation 0)
+        (let ((endtok (moose-looking-at-end-of-block))
+               (last-open-block (moose-last-open-block (- (point) 2000))))
+          (max 0 (+ (or last-open-block 0)
+                   (if endtok
+                     (- moose-indent-offset)
+                     0))))))
+    (when (>= point-offset 0)
+      (move-to-column (+ (current-indentation) point-offset)))))
+
+;;;###autoload
 (define-derived-mode moose-mode prog-mode "MOOSE"
   :syntax-table moose-mode-syntax-table
   :group 'moose
-  (setq-local font-lock-defaults '(moose-mode-font-lock-keywords)))
+  (setq-local comment-start "# ")
+  (setq-local comment-start-skip "#+[[:space]]-*")
+  (setq-local font-lock-defaults '(moose-mode-font-lock-keywords))
+  (setq-local indent-line-function #'moose-indent-line)
+  (setq indent-tabs-mode nil))
 
 (provide 'moose-mode)
 ;;; moose-mode.el ends here
