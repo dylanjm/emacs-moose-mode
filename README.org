@@ -5,23 +5,37 @@ This is an Emacs major mode for [[https://github.com/idaholab/moose][MOOSE]] inp
 [[file:assets/example.png]]
 
 ** Install
-Currently, this package is not yet available on MELPA. In the meantime, you can install this package by cloning this repo and placing it in the load-path in your =init.el= file. Or, if you use straight package manager you can:
+
+Currently, this package is not yet available on [[https://melpa.org/#/][MELPA]]. In the meantime, you can install =emacs-moose-mode= by cloning this repo and placing it in the load-path in your =init.el= file; Or, if you use [[https://github.com/raxod502/straight.el][straight package manager]] you can:
 
 #+begin_src emacs-lisp
 (use-package
   :straight (:host github :repo "dylanjm/emacs-moose-mode"))
 #+end_src
 
+** Usage
+
+By default, =moose-mode= is set to 'auto-activate' when emacs opens =*.i=, =assessment=, or =test= files.
+
+Also, =moose-mode= defaults to using an indentation-offset of 2. You can change this variable by
+putting the following in your =init.el=
+
+#+begin_src emacs-lisp
+(with-eval-after-load moose-mode
+  (setq moose-indent-offset 4))
+#+end_src
+
 ** Contribution
 
-If you find a bug or would like to contribute to making the code more robust, please submit an issue and/or a PR.
+If you find a bug or would like to contribute to making the code more robust, please submit an [[https://github.com/dylanjm/emacs-moose-mode/issues][issue]] and/or a [[https://github.com/dylanjm/emacs-moose-mode/pulls][pull-request]].
 
 ** Related Projects
 
 - [[https://github.com/idaholab/moose][MOOSE]]
 - [[https://github.com/dylanjm/moose-hit-format.el][Moose-HIT-Format (Emacs)]]
-- [[https://github.com/dschwen/moose-hit-format][Moose-HIT-Format (Atom)]]
+- [[https://github.com/dschwen/moose-hit-format][Moose-HIT-Format (Atom Editor)]]
 - [[https://github.com/dschwen/language-moose][Language-Moose (Atom)]]
+- [[https://github.com/dschwen/autocomplete-moose][Moose-Autocomplete (Atom)]]
 
 ** MIT License
 #+begin_example

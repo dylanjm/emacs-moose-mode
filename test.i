@@ -1,3 +1,4 @@
+#-*- mode: moose; -*-
 # This is a comment.
 # comments can span multiple lines!
 [Mesh]
