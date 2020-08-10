@@ -2,6 +2,8 @@
 
 This is an Emacs minor mode for [[https://github.com/idaholab/moose][MOOSE]] input and testing files. It provides syntax-highlighting and that's about it right now.
 
+[[file:assets/example.png]]
+
 ** Install
 
 You can install this package by cloning this repo and placing it in the load-path in your =init.el= file. Or, if you use straight package manager you can:
