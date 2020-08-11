@@ -4,7 +4,7 @@ This is an Emacs major mode for [[https://github.com/idaholab/moose][MOOSE]] inp
 
 [[file:assets/example.png]]
 
-** Install
+** Installation
 
 Currently, this package is not yet available on [[https://melpa.org/#/][MELPA]]. In the meantime, you can install =emacs-moose-mode= by cloning this repo and placing it in the load-path in your =init.el= file; Or, if you use [[https://github.com/raxod502/straight.el][straight package manager]] you can:
 
@@ -18,12 +18,25 @@ Currently, this package is not yet available on [[https://melpa.org/#/][MELPA]].
 By default, =moose-mode= is set to 'auto-activate' when emacs opens =*.i=, =assessment=, or =test= files.
 
 Also, =moose-mode= defaults to using an indentation-offset of 2. You can change this variable by
-putting the following in your =init.el=
+putting the following in your =init.el=:
 
 #+begin_src emacs-lisp
 (with-eval-after-load moose-mode
   (setq moose-indent-offset 4))
 #+end_src
+
+** Roadmap
+
+Listed in order from /most-practical/ to /strech-goals/.
+
+/Some of these goals may be broken off into separate libraries./
+
++ [X] Syntax Highlighting
++ [X] Mode-Specific Indentation
++ [ ] Snippets
++ [ ] Autocomplete
++ [ ] Action-Expansion
++ [ ] Linting
 
 ** Contribution
 
@@ -31,11 +44,11 @@ If you find a bug or would like to contribute to making the code more robust, pl
 
 ** Related Projects
 
-- [[https://github.com/idaholab/moose][MOOSE]]
-- [[https://github.com/dylanjm/moose-hit-format.el][Moose-HIT-Format (Emacs)]]
-- [[https://github.com/dschwen/moose-hit-format][Moose-HIT-Format (Atom Editor)]]
-- [[https://github.com/dschwen/language-moose][Language-Moose (Atom)]]
-- [[https://github.com/dschwen/autocomplete-moose][Moose-Autocomplete (Atom)]]
++ [[https://github.com/idaholab/moose][MOOSE]]
++ [[https://github.com/dylanjm/moose-hit-format.el][Moose-HIT-Format (Emacs)]]
++ [[https://github.com/dschwen/moose-hit-format][Moose-HIT-Format (Atom Editor)]]
++ [[https://github.com/dschwen/language-moose][Language-Moose (Atom)]]
++ [[https://github.com/dschwen/autocomplete-moose][Moose-Autocomplete (Atom)]]
 
 ** MIT License
 #+begin_example
