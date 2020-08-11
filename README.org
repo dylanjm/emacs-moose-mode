@@ -29,14 +29,15 @@ putting the following in your =init.el=:
 
 Listed in order from /most-practical/ to /strech-goals/.
 
-/Some of these goals may be broken off into separate libraries./
-
 + [X] Syntax Highlighting
 + [X] Mode-Specific Indentation
++ [ ] Navigation Functions
 + [ ] Snippets
-+ [ ] Autocomplete
++ [ ] Autocomplete (Company-Mode integration)
 + [ ] Action-Expansion
 + [ ] Linting
+
+*Note*: Some of these goals may be broken off into separate libraries.
 
 ** Contribution
 
