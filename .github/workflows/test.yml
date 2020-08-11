@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: purcell/setup-emacs@master
         with:
-          version ${{ matrix.emacs_version }}
+          version: ${{ matrix.emacs_version }}
 
       - uses: actions/checkout@v2
       - name: Run tests
