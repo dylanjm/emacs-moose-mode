@@ -61,5 +61,27 @@
          (font-lock-fontify-buffer)))
      (should (eq ,face (get-text-property ,pos 'face)))))
 
-(provide 'moose-test-helpers)
+(defmacro moose--should-move-point (text fun from to &optional end arg)
+  "Assert that TEXT in `moose-mode', after calling FUN, the point should move FROM
+to TO."
+  (declare (indent defun))
+  `(with-temp-buffer
+     (moose-mode)
+     (insert ,text)
+     (let ((inhibit-message t))
+       (indent-region (point-min) (point-max)))
+     (goto-char (point-min))
+     (if (stringp ,from)
+       (re-search-forward ,from)
+       (goto-char ,from))
+     (funcall ,fun ,arg)
+     (should (eq (point) (if (stringp ,to)
+                           (progn (goto-char (point-min))
+                             (re-search-forward ,to)
+                             (if ,end (goto-char (match-end 0))
+                               (goto-char (match-beginning 0))
+                               (point-at-bol)))
+                           ,to)))))
+
+  (provide 'moose-test-helpers)
 ;;; moose-test-helpers.el ends here
