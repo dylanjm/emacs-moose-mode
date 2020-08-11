@@ -66,7 +66,7 @@
 
 (defvar moose-mode-hook nil)
 
-(eval-when-compile
+(eval-and-compile
   (defun moose-string-keyword-matcher (regex)
     "Use REGEX to find keywords within strings and return closure."
     (lambda (end)

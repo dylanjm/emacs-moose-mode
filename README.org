@@ -1,4 +1,4 @@
-#+title: Emacs MOOSE Mode
+#+title: MOOSE-Mode
 
 This is an Emacs major mode for [[https://github.com/idaholab/moose][MOOSE]] input and testing files. It provides syntax-highlighting and that's about it right now.
 
