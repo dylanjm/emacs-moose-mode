@@ -4,7 +4,7 @@
 [[https://img.shields.io/github/v/tag/dylanjm/emacs-moose-mode][https://img.shields.io/github/v/tag/dylanjm/emacs-moose-mode.svg?label=release]]
 [[https://github.com/dylanjm/teton/actions][file:https://github.com/dylanjm/emacs-moose-mode/workflows/CI/badge.svg]]
 
-This is an Emacs major mode for [[https://github.com/idaholab/moose][MOOSE]] input and testing files. It provides syntax-highlighting and that's about it right now.
+This is an Emacs major-mode for [[https://github.com/idaholab/moose][MOOSE]] input and testing files. It provides syntax-highlighting and other functionality.
 
 [[file:assets/example.png]]
 
@@ -52,13 +52,13 @@ Listed in order from /most-practical/ to /strech-goals/.
 
 ** Contribution
 
-If you find a bug or would like to contribute to making the code more robust, please submit an [[https://github.com/dylanjm/emacs-moose-mode/issues][issue]] and/or a [[https://github.com/dylanjm/emacs-moose-mode/pulls][pull-request]].
+If you find a bug or would like to contribute, please submit an [[https://github.com/dylanjm/emacs-moose-mode/issues][issue]] and/or a [[https://github.com/dylanjm/emacs-moose-mode/pulls][pull-request]].
 
 ** Related Projects
 
 + [[https://github.com/idaholab/moose][MOOSE]]
 + [[https://github.com/dylanjm/moose-hit-format.el][Moose-HIT-Format (Emacs)]]
-+ [[https://github.com/dschwen/moose-hit-format][Moose-HIT-Format (Atom Editor)]]
++ [[https://github.com/dschwen/moose-hit-format][Moose-HIT-Format (Atom)]]
 + [[https://github.com/dschwen/language-moose][Language-Moose (Atom)]]
 + [[https://github.com/dschwen/autocomplete-moose][Moose-Autocomplete (Atom)]]
 

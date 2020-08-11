@@ -1,6 +1,8 @@
 ;;; moose-mode.el --- Major mode for editing MOOSE input files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021 moose-mode contributors
+;; Copyright (C) 2020-2021 Dylan McDowell
+;; Author: Dylan McDowell <dylan.mcdowell@inl.gov>
+;; Maintainer: Dylan McDowell <dylan.mcdowell@inl.gov>
 ;; URL: https://github.com/dylanjm/emacs-moose-mode
 ;; Version: 0.1
 ;; Keywords: languages
@@ -8,14 +10,14 @@
 
 ;;; Usage:
 ;; Put the following code in your init.el or other relevant file
-;; (add-to-list 'load-path "path-to-moose-mode")
+;; (add-to-list 'load-path "<path-to-moose-mode>")
 ;; (require 'moose-mode)
 
 ;;; Commentary:
 ;; This is the official Emacs mode for editing MOOSE input files.
 
 ;;; License:
-;; Copyright 2020-2021 Dylan McDowell
+;; This file is NOT part of GNU Emacs.
 ;;
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy of
 ;; this software and associated documentation files (the "Software"), to deal in
@@ -99,7 +101,7 @@
 (defconst moose-function-regexp
   (rx (zero-or-more (in space))
     "["
-    (? (group (+ ".") (+ "/")))
+    (? (group (+ ".") "/"))
     (group (+ (in word)))
     "]"))
 
@@ -138,6 +140,22 @@
         "TRI6" "HEX" "HEX8" "HEX20" "HEX27" "TET4" "TET10" "PRISM6" "PRISM15"
         "PRISM18"))))
 
+;; TODO - add constants for string literals.
+(defconst moose-output-on-regexp
+  (rx bow "output_on"
+    (zero-or-more (in space))
+    (group "=")
+    (zero-or-more (in space))
+    (group "'")))
+
+;; TODO - add constants for string literals.
+(defconst moose-execute-on-regexp
+  (rx bow "execute_on"
+    (zero-or-more (in space))
+    (group "=")
+    (zero-or-more (in space))
+    (group "'")))
+
 (defconst moose-boolean-constant-regexp
   (rx bow (group (or "false" "true"))))
 
@@ -147,6 +165,8 @@
 (defconst moose-numeric-regexp-2
   "[[:digit:]]+e[+-]\\{0,1\\}[[:digit:]]+")
 
+;; TODO - Sometimes 'e' doesn't get highlighted when used
+;; with a decimal. (e.g. 3.5e-10)
 (defconst moose-numeric-regexp-3
   "[[:digit:]]*\\.[[:digit:]]+e[+-]\\{0,1\\}[[:digit:]]+")
 
@@ -181,6 +201,8 @@
      (,moose-numeric-regexp-3 (0 font-lock-constant-face))
      (,moose-numeric-regexp-4 (0 font-lock-constant-face))
      (,moose-boolean-constant-regexp (1 font-lock-constant-face))
+     ;; First color anything that is not an operator, number, or function.
+     ;; This will prevent file-names with numbers from being incorrectly highlighted.
      (,(moose-string-keyword-matcher "\\sw+") 0 font-lock-variable-name-face t)
      (,(moose-string-keyword-matcher moose-inline-operator-regexp) 0 nil t)
      (,(moose-string-keyword-matcher moose-math-functions-regexp) 1 font-lock-function-name-face t)
@@ -209,7 +231,9 @@
       (looking-at moose-function-regexp))))
 
 (defun moose-looking-at-end-of-block (&optional syntax-ppss)
-  "Return non-nil if SYNTAX-PPSS is at `beginning-of-block'."
+  "Return non-nil if SYNTAX-PPSS is at `end-of-block'.
+The regexp used will match the legacy syntax that allowed for closing
+blocks with `[../]`, it will also match the updated syntax of just `[]`."
   (and (not (moose-comment-or-string-p (or syntax-ppss (syntax-ppss))))
     (save-excursion
       (beginning-of-line 1)
@@ -218,7 +242,7 @@
 
 (defun moose-last-open-block-pos (min)
   "Return position of the last open block if found.
-Do not move back beyone position MIN."
+Do not move back beyond position MIN."
   (save-excursion
     (let ((nesting-count 0))
       (while (not (or (> nesting-count 0) (<= (point) min)))
@@ -251,9 +275,14 @@ Do not move back beyond MIN."
     (indent-line-to
       (save-excursion
         (beginning-of-line)
+        ;; jump out of any comments
+        (let ((state (syntax-ppss)))
+          (when (nth 4 state)
+            (goto-char (nth 8 state))))
         (forward-to-indentation 0)
         (let ((endtok (moose-looking-at-end-of-block))
-               (last-open-block (moose-last-open-block (- (point) 2000))))
+               ;; only lookback 2000 lines for closed blocks
+               (last-open-block (moose-last-open-block (- (point) 500))))
           (max 0 (+ (or last-open-block 0)
                    (if endtok
                      (- moose-indent-offset)
