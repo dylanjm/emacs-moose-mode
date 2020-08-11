@@ -1,4 +1,4 @@
-EMACS=/usr/local/bin/emacs
+EMACS=emacs
 
 .PHONY: all test test-batch
 
