@@ -290,8 +290,74 @@ Do not move back beyond MIN."
     (when (>= point-offset 0)
       (move-to-column (+ (current-indentation) point-offset)))))
 
+(defun moose--beginning-of-block (&optional arg)
+  "Internal implementation of `moose-beginning-of-block'.
+With positive ARG search backwards, else search forwards."
+  (when (or (null arg) (= arg 0)) (setq arg 1))
+  (let* ((re-search-fn (if (> arg 0)
+                         #'re-search-backward
+                         #'re-search-forward))
+          (line-beg-pos (line-beginning-position))
+          (line-content-start (+ line-beg-pos (current-indentation)))
+          (pos (point-marker))
+          (beg-indentation
+            (and (> arg 0)
+              (save-excursion
+                (while (and (not (moose-looking-at-beginning-of-block))
+                         (moose-last-open-block (point-min))))
+                (or (and (moose-looking-at-beginning-of-block)
+                      (+ (current-indentation) moose-indent-offset))
+                  0))))
+          (found
+            (progn
+              (when (and (< arg 0) (moose-looking-at-beginning-of-block))
+                (end-of-line 1))
+              (while (and (funcall re-search-fn moose-function-regexp nil t)
+                       (or (moose-comment-or-string-p)
+                         (and (> arg 0)
+                           (not (= (current-indentation) 0))
+                           (>= (current-indentation) beg-indentation)))))
+              (and (moose-looking-at-beginning-of-block)
+                (or (not (= (line-number-at-pos pos) (line-number-at-pos)))
+                  (and (>= (point) line-beg-pos)
+                    (<= (point) line-content-start)
+                    (> pos line-content-start)))))))
+    (if found
+      (or (beginning-of-line 1) (point))
+      (and (goto-char pos) nil))))
+
+(defun moose-beginning-of-block (&optional arg)
+  "Move point to `beginning-of-block'.
+With positive ARG search backwards else search forward.
+ARG nil or 0 defaults to 1."
+  (when (or (null arg) (= arg 0)) (setq arg 1))
+  (let ((found))
+    (while (and (not (= arg 0))
+             (let ((keep-searching-p (moose--beginning-of-block arg)))
+               (when (and keep-searching-p (null found))
+                 (setq found t))
+               keep-searching-p))
+      (setq arg (if (> arg 0) (1- arg) (1+ arg))))
+    found))
+
+(defun moose-end-of-block ()
+  "Move point to the end of the current block."
+  (interactive)
+  (let ((beg-block-indent))
+    (when (or (moose-looking-at-beginning-of-block)
+            (moose-beginning-of-block 1)
+            (moose-beginning-of-block -1))
+      (beginning-of-line)
+      (setq beg-block-indent (current-indentation))
+      (while (and (not (eobp))
+               (forward-line 1)
+               (or (moose-comment-or-string-p)
+                 (> (current-indentation) beg-block-indent)))))
+    (end-of-line)
+    (point)))
+
 ;;;###autoload
-(define-derived-mode moose-mode prog-mode "MOOSE"
+(define-derived-mode moose-mode prog-mode "moose"
   "Major mode for editing MOOSE input files."
   :syntax-table moose-mode-syntax-table
   :group 'moose
@@ -299,6 +365,8 @@ Do not move back beyond MIN."
   (setq-local comment-start-skip "#+[[:space]]-*")
   (setq-local font-lock-defaults '(moose-mode-font-lock-keywords))
   (setq-local indent-line-function #'moose-indent-line)
+  (setq-local beginning-of-defun-function #'moose-beginning-of-block)
+  (setq-local end-of-defun-function #'moose-end-of-block)
   (setq indent-tabs-mode nil))
 
 (provide 'moose-mode)
