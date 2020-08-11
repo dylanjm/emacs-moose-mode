@@ -1,5 +1,39 @@
-;;; moose-mode.el --- Syntax Highlighting for MOOSE  -*- lexical-binding: t; -*-
+;;; moose-mode.el --- Major mode for editing MOOSE input files -*- lexical-binding: t -*-
+
+;; Copyright (C) 2020-2021 moose-mode contributors
+;; URL: https://github.com/dylanjm/emacs-moose-mode
+;; Version: 0.1
+;; Keywords: languages
+;; Package-Requires: ((emacs "26.3"))
+
+;;; Usage:
+;; Put the following code in your init.el or other relevant file
+;; (add-to-list 'load-path "path-to-moose-mode")
+;; (require 'moose-mode)
+
 ;;; Commentary:
+;; This is the official Emacs mode for editing MOOSE input files.
+
+;;; License:
+;; Copyright 2020-2021 Dylan McDowell
+;;
+;; Permission is hereby granted, free of charge, to any person obtaining a copy of
+;; this software and associated documentation files (the "Software"), to deal in
+;; the Software without restriction, including without limitation the rights to
+;; use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+;; the Software, and to permit persons to whom the Software is furnished to do so,
+;; subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+;; FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+;; COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+;; IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 ;;; Code:
 (require 'rx)
 (require 'cl-lib)
@@ -34,7 +68,7 @@
 
 (eval-when-compile
   (defun moose-string-keyword-matcher (regex)
-    "Use REGEX to find keywords within strings."
+    "Use REGEX to find keywords within strings and return closure."
     (lambda (end)
       (let (pos (case-fold-search t))
         (while (and (setq pos (re-search-forward regex end t))
@@ -201,7 +235,7 @@ Do not move back beyone position MIN."
         nil))))
 
 (defun moose-last-open-block (min)
-  "Move point back and return indentatino level for last open block.
+  "Move point back and return indentation level for last open block.
 Do not move back beyond MIN."
   (setq min (max min (point-min)))
   (let ((pos (moose-last-open-block-pos min)))
@@ -211,7 +245,7 @@ Do not move back beyond MIN."
         (+ moose-indent-offset (current-indentation))))))
 
 (defun moose-indent-line ()
-  "Indent current line of moose input file."
+  "Indent current line of MOOSE input file."
   (interactive)
   (let* ((point-offset (- (current-column) (current-indentation))))
     (indent-line-to
@@ -229,6 +263,7 @@ Do not move back beyond MIN."
 
 ;;;###autoload
 (define-derived-mode moose-mode prog-mode "MOOSE"
+  "Major mode for editing MOOSE input files."
   :syntax-table moose-mode-syntax-table
   :group 'moose
   (setq-local comment-start "# ")
