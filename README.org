@@ -2,7 +2,7 @@
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto;
 [[https://img.shields.io/github/v/tag/dylanjm/emacs-moose-mode][https://img.shields.io/github/v/tag/dylanjm/emacs-moose-mode.svg?label=release]]
-[[https://github.com/dylanjm/teton/actions][file:https://github.com/dylanjm/emacs-moose-mode/workflows/CI/badge.svg]]
+[[https://github.com/dylanjm/emacs-moose-mode/actions][file:https://github.com/dylanjm/emacs-moose-mode/workflows/CI/badge.svg]]
 
 This is an Emacs major-mode for [[https://github.com/idaholab/moose][MOOSE]] input and testing files. It provides syntax-highlighting and other functionality.
 
