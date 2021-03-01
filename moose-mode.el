@@ -51,8 +51,9 @@
 
 ;;;###autoload
 (dolist (modes '( ("\\.i\\'" . moose-mode)
-                  ("^assessment\\'" . moose-mode)
-                  ("^test\\'" . moose-mode)))
+                  ("assessment\\'" . moose-mode)
+                  ("examples\\'" . moose-mode)
+                  ("tests\\.'" . moose-mode)))
   (add-to-list 'auto-mode-alist modes))
 
 (defconst moose-mode-syntax-table
